@@ -4,7 +4,7 @@ def print_first_200_lines(filename):
     try:
         with open(filename, 'r') as file:
             for i, line in enumerate(file):
-                if i >= 200:
+                if i >= 10000000:
                     break
                 print(line, end='')  # `end=''` to avoid adding extra newlines
     except FileNotFoundError:
