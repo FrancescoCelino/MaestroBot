@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Run alleno_json.py",
+        "type": "python",
+        "request": "launch",
+        "program": "${workspaceFolder}/alleno_json.py",
+        "console": "integratedTerminal"
+      },
+      {
+        "name": "Run llama_tester.py",
+        "type": "python",
+        "request": "launch",
+        "program": "${workspaceFolder}/llama_tester.py",
+        "console": "integratedTerminal"
+      }
+    ]
+  }

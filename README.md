@@ -3,18 +3,29 @@ user357010412 id del maestro
 
 circa 14000 messaggi del maestro su gozomaxxing
 
-# venv dipendenze
-python version 3.11
+## Development Setup (Docker)
 
-"pip install -r requirements.txt" da eseguire nel terminale per installare la stessa versione di tutte le librerie usate da Fra Gigante nel virtual environment
+### Requirements
+- Docker
+- Docker Compose
+- (optional) VS Code with Remote Containers extension
+- NVIDIA GPU drivers installed
+- NVIDIA Container Toolkit installed
 
-"pip freeze > requirements.txt" crea un file con tutte le dipendenze necessarie al virtual environment, ottimo per tenerne traccia e reinstallarle in seguito su altri dispositivi
+You can verify GPU availability with:
 
-"py -3.11 -m venv tf_env_311" per creare il virtual environment nella tua cartella di lavoro. Richiede python 3.11
+```bash
+docker run --gpus all nvidia/cuda:12.0.0-base-ubuntu20.04 nvidia-smi
+```
+### Run the app
 
-"tf_env_311\Scripts\activate" attiva il venv (per installare librerie nell'ambiente virtuale, devi prima attivarlo)
+```bash
+# Build and start the container
+docker-compose up --build
+```
+### If you need Environment Variables
 
-"Ctrl+Shift+P" per selezionare l'interprete, scegli "ambiente virtuale" per far girare gli script lì
-
-# altre dipendenze non di python
-CUDA 12.2 and cuDNN 8.9 scaricabili da sito nvidia
+1. Copy the content of `.env.example` to a file named `.env`
+2. Fill in with your actual secret keys.
+3. Use those variables with the dotenv library
+4. Never commit the .env file on GitHub
