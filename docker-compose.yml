@@ -16,3 +16,24 @@ services:
     stdin_open: true
     tty: true
     command: bash
+  exporter:
+    build: .                   # uses the *same* Docker image
+    volumes:
+      - .:/app                 # share the same code & data
+      - ./.env:/app/.env
+    working_dir: /app          # start in the project root
+    # ⚙ Run the Python script with whatever flags you like
+    command: >
+      python process_telegram_export.py
+             --input  result.json
+             --output dataset.jsonl
+             --author-id user357010412
+             --keep-newlines
+             --debug
+
+# in shell:
+# Open your usual interactive container	
+# docker compose up -d maestrobot
+# docker compose exec maestrobot bash
+# Run the exporter once (throws container away afterwards)	
+# docker compose run --rm exporter

@@ -89,6 +89,15 @@ This project is configured to use NVIDIA GPUs through Docker for faster model tr
 - Compatible NVIDIA drivers installed on your host
 - NVIDIA Container Toolkit installed and configured (already installed on Windows by default)
 
+## Gozo Messages Dataset curation
+docker compose run --rm exporter
+this command runs the "exporter" service specified in docker-compose.yml and then deletes the container (any file created will stay in the local host though)
+
+docker compose up -d maestrobot 
+docker compose exec maestrobot bash
+the first command looks for the "maestrobot" service, builds an image if not already present, and (re)starts a container.
+the second command launches a new bash process in an already started container
+
 ## LLM Fine-tuning Workflow
 WIP
 
