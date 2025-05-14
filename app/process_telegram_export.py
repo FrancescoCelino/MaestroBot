@@ -1,3 +1,16 @@
+"""
+Usage example
+-------------
+```bash
+python process_telegram_export.py \
+       --input result.json \
+       --output dataset.jsonl \
+       --author-id user357010412 \
+       --idle-cutoff-min 30 \
+       --keep-newlines --debug
+```
+"""
+
 import argparse # used to parse command line arguments
 import json
 import logging # used for debug prints
@@ -39,6 +52,9 @@ def parse_cli_arguments():
                     help="Ignore parent if older than this gap (in hours)")
     ap.add_argument("--keep-newlines", action="store_true",
                     help="Preserve original newlines inside messages")
+    ap.add_argument("--idle-cutoff-min", type=int, default=0,
+                    help="If >0, treat a non‑reply message as standalone when the previous "
+                         "message is older than this many minutes.")
 
     # debug
     ap.add_argument("--debug", action="store_true",
@@ -125,6 +141,8 @@ def main():
     prompt_response_pairs: List[dict] = [] 
     already_processed_ids: set = set() # so we don’t visit self‑reply msgs twice
 
+    idle_delta = timedelta(minutes=args.idle_cutoff_min) if args.idle_cutoff_min else None
+
     for m in messages: 
         if m.get("from_id") != args.author_id: 
             continue
@@ -135,7 +153,7 @@ def main():
         self_chain = []
         cur = m
         while cur and cur.get("from_id") == args.author_id: 
-            self_chain.appen(cur)
+            self_chain.append(cur)  # Corretto 'appen' in 'append'
             already_processed_ids.add(cur["id"]) 
             parent_id = cur.get("reply_to_message_id")
             parent = message_by_id.get(parent_id) if parent_id else None
@@ -162,6 +180,13 @@ def main():
         ### prompt text ###
         root = self_chain[0]
         prompt_parts: List[str] = []
+        
+        # Inizializza context_type in base alla presenza di reply_to_message_id
+        if root.get("reply_to_message_id"):
+            context_type = "reply"
+        else:
+            context_type = "none"  # Messaggio standalone di default se non è una risposta
+            logging.debug("Msg %s is not a reply, marking as standalone initially", root["id"])
 
         parent_id = root.get("reply_to_message_id")
         hops = 0
@@ -196,7 +221,22 @@ def main():
                     prompt_parts.append(prompt_text)
                     back += 1
             prompt_parts.reverse()
-        
+            
+            # Se abbiamo trovato prompt_parts usando la finestra mobile, 
+            # questo non è più un messaggio standalone
+            if prompt_parts:
+                context_type = "window"  # Un nuovo tipo per chiarire che stiamo usando context window
+            
+            if idle_delta and prompt_parts:
+                try:
+                    last_prev_ts = datetime.fromisoformat(messages[idx + 1]["date"].replace("Z", ""))
+                    root_ts      = datetime.fromisoformat(root["date"].replace("Z", ""))
+                    if root_ts - last_prev_ts >= idle_delta:
+                        prompt_parts = []  # treat as stand‑alone
+                        context_type = "none"
+                        logging.debug("Msg %s marked standalone (idle gap)", root["id"])
+                except Exception:
+                    pass  # be lenient if date parsing fails
 
         prompt = "\n".join(prompt_parts).strip()
 
@@ -204,7 +244,11 @@ def main():
             logging.debug("Skipped msg %s — prompt empty or identical to completion", m["id"])
             continue
 
-        prompt_response_pairs.append({"prompt": prompt, "completion": completion})
+        prompt_response_pairs.append({
+            "prompt": prompt,
+            "completion": completion,
+            "standalone": context_type == "none"
+        })
 
     with Path(args.output).open("w", encoding="utf-8") as fout:
         for pair in prompt_response_pairs:

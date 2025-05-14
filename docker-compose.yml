@@ -32,8 +32,10 @@ services:
              --debug
 
 # in shell:
-# Open your usual interactive container	
+
+# Open your usual interactive container:	
 # docker compose up -d maestrobot
 # docker compose exec maestrobot bash
-# Run the exporter once (throws container away afterwards)	
+
+# Run the exporter once (throws container away afterwards):	
 # docker compose run --rm exporter
