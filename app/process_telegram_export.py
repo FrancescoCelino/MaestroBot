@@ -2,13 +2,22 @@
 Usage example
 -------------
 ```bash
-python process_telegram_export.py \
-       --input result.json \
+python app/process_telegram_export.py \
+       --input gozomaxxing_json/result.json \
        --output dataset.jsonl \
        --author-id user357010412 \
        --idle-cutoff-min 30 \
        --keep-newlines --debug
 ```
+
+su powershell
+python app\\process_telegram_export.py `
+  --input gozomaxxing_json\\result.json `
+  --output dataset.jsonl `
+  --author-id user357010412 `
+  --idle-cutoff-min 30 `
+  --keep-newlines `
+  --debug
 """
 
 import argparse # used to parse command line arguments
@@ -231,7 +240,7 @@ def main():
                 try:
                     last_prev_ts = datetime.fromisoformat(messages[idx + 1]["date"].replace("Z", ""))
                     root_ts      = datetime.fromisoformat(root["date"].replace("Z", ""))
-                    if root_ts - last_prev_ts >= idle_delta:
+                    if root_ts - last_prev_ts >= idle_delta: # variando idle_delta, discriminiamo i messaggi "stand-alone" da quelli che rispondono a qualcun altro
                         prompt_parts = []  # treat as stand‑alone
                         context_type = "none"
                         logging.debug("Msg %s marked standalone (idle gap)", root["id"])
@@ -240,7 +249,7 @@ def main():
 
         prompt = "\n".join(prompt_parts).strip()
 
-        if not prompt or prompt == completion:
+        if (not prompt or prompt == completion) and context_type != "none":
             logging.debug("Skipped msg %s — prompt empty or identical to completion", m["id"])
             continue
 

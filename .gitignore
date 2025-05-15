@@ -1,7 +1,8 @@
 .env
-gozomaxxing json/result.json
-gozomaxxing json
+gozomaxxing_json/result.json
+gozomaxxing_json
 tf_env_311/
 gozomaxxing_json.zip
 *.log
 *.pid
+dataset.jsonl
